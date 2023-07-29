@@ -1,0 +1,32 @@
+[
+    {
+        "inputs": [
+            {
+                "internal_type": "",
+                "name": "_user",
+                "type": "address"
+            }
+        ],
+        "name": "hasCurrentlyActivated",
+        "outputs": [
+            {
+                "internal_type": "",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function",
+        "anonymous": false
+    },
+    {
+        "inputs": [],
+        "name": "activateStreak",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function",
+        "anonymous": false
+    }
+]
