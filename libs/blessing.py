@@ -1,11 +1,12 @@
 import requests
 import json
+import os
 from web3 import Web3
 
 # 合约地址: https://app.roninchain.com/address/ronin:9d3936dbd9a794ee31ef9f13814233d435bd806c
 blessing_contract_address='0x9d3936dbd9a794ee31ef9f13814233d435bd806c'
 ronin_rpc = 'https://api.roninchain.com/rpc'
-abi_file_path = 'abis/blessing_abi.json'
+abi_file_path = os.path.abspath('abis/blessing_abi.json')
 
 # 开始祈福
 def start(private_key):
