@@ -1,0 +1,45 @@
+query GetAxieBriefList($criteria: AxieSearchCriteria, $from: Int, $size: Int) {
+  axies(
+    criteria: $criteria
+    from: $from
+    size: $size
+    auctionType: Sale
+    sort: PriceAsc
+  ) {
+    total
+    results {
+      id
+      owner
+      order {
+        id
+        maker
+        kind
+        expiredAt
+        paymentToken
+        startedAt
+        basePrice
+        endedAt
+        endedPrice
+        expectedState
+        nonce
+        marketFeePercentage
+        signature
+        hash
+        duration
+        timeLeft
+        currentPrice
+        suggestedPrice
+        currentPriceUsd
+        addedAt
+        assets {
+          address
+          erc
+          id
+          orderId
+          quantity
+        }
+        status
+      }
+    }
+  }
+}

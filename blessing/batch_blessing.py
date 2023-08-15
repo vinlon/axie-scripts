@@ -1,6 +1,7 @@
 import requests
 import json
 import os
+import time
 from web3 import Web3
 
 
@@ -23,11 +24,12 @@ def start(private_key):
 
     signer = w3.eth.account.from_key(private_key)
     address = signer.address
+    current = time.strftime("%Y-%m-%d %H:%M:%S",time.localtime())
     if has_currently_activated(contract, address):
-        print(f"Blessing had been activated for {address}")
+        print(f'[{current}] {address} 已祈福')
         return
     if activate_streak(w3, contract, signer):
-        print(f"Blessing activate success for {address}")
+        print(f'[{current}] {address} 祈福成功')
         return
 
 # 检查当前账号是否已经祈福（不会消耗gas费）
@@ -47,13 +49,13 @@ def activate_streak(w3, contract, signer):
         tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
         return True
     except Exception as e:
-        print(f"Blessing failed for {signer.address} - {e}")
+        print(f'祈福失败 {signer.address} - {e}')
         return False
 ### ============方法定义 end =============
 
 ### ============脚本执行 start =============
 # 从.blessing_keys文件中读取想要祈福的账号
-with open('.batch_blessing_env', 'r') as file:
+with open('_batch_blessing_env', 'r') as file:
   # 使用 json.load() 方法加载数据
   keys = json.load(file)
 
