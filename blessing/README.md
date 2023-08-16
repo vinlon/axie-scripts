@@ -17,7 +17,15 @@ pip install json
 
 ## 使用说明 
 
+复制batch_blessing_env.example文件并命名为_batch_blessing_env,将文件中的PRIVATE_KEY改为你的真实私钥
+
+注意: 文件中包含私钥信息，请不要向任何人泄露，通过复制文件的方式分享代码时也一定要将_batch_blessing_env文件删除
+
 ### 单次使用
+
+```
+python3 {script_path}/blessing/batch_blessing.py
+```
 
 ### 定时任务
 
@@ -29,8 +37,4 @@ pip install json
 
 ```
 
-
-## 注意事项
-
-1. 请注意不要向任何人泄露你的密钥，也不要将包含 .batch_blessing_env 的文件的脚本分享给任何人或存放到任何非本人的电脑上
 
