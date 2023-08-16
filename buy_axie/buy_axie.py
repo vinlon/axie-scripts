@@ -25,7 +25,6 @@ def fetch_axie(mp_url, size):
   }
 
   response = graphql(data)
-  
   return response.json()['data']['axies']
 
 def buy_axie(axie, private_key, gas_price):
@@ -86,10 +85,8 @@ def buy_axie(axie, private_key, gas_price):
   
 # 发送graphql请求
 def graphql(data): 
-  endpoint = 'https://api-gateway.skymavis.com/graphql/marketplace'
-  api_key = 'bca6LjK8Xx96tcu881OrT0TmhnvvngnA'
+  endpoint = 'https://graphql-gateway.axieinfinity.com/graphql'
   headers = {
-    'x-api-key': api_key
   }
   return requests.post(endpoint, json = data, headers = headers)
 
@@ -140,6 +137,9 @@ def main():
   print(f'开始执行:')
   buy_count = 0
   while True:
+    # 延时1s执行
+    time.sleep(1)
+    
     try: 
       # 查询列表，只取价格最低的一个
       axie_list = fetch_axie(mp_url, 1)
@@ -174,8 +174,7 @@ def main():
       else:
         print(f"请求失败, 消耗gas:{gas_used}, 交易哈希: {transaction_hash}")
 
-    # 延时1s执行
-    time.sleep(1)
+
 
 ### ============方法定义 end =============
 try: 

@@ -8,6 +8,7 @@
 - python3  
 - pip  
 - 安装依赖  
+
 ```
 pip install requests
 pip install web3
@@ -19,6 +20,15 @@ pip install json
 ### 单次使用
 
 ### 定时任务
+
+```
+# 注意将 {script_path} 和 {python_path} 替换成真实路径
+# 每天中行12:18自动执行脚本,并将执行日志写入run.log文件中
+
+18 12 * * * cd {script_path}/blessing/ && {python_path}/python3 batch_blessing.py >> run.log 2>&1
+
+```
+
 
 ## 注意事项
 
