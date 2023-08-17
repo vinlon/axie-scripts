@@ -1,4 +1,4 @@
-###  axie-script
+###  AXIE-SCRIPT
 
 每一个功能都可单独使用
 
