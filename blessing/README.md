@@ -24,6 +24,8 @@ pip install json
 ### 单次使用
 
 ```
+# 注意将 {script_path} 替换成真实路径
+
 python3 {script_path}/blessing/batch_blessing.py
 ```
 

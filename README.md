@@ -5,6 +5,11 @@
 
 ###  传送门
 
-- [batch_blessing](blessing/README.md)
+- [自动祈福](blessing/README.md)
 
-- [buy_axie](buy_axie/README.md)
+无需手动登录账号，通过设置定时任务每天自动完成祈福（妈妈再也不用担心我忘记打卡啦。。。）
+
+
+- [自动扫货](buy_axie/README.md)
+
+监控市场查询链接，如果出现符合条件的低价宠物则自动购买

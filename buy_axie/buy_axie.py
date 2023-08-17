@@ -30,6 +30,8 @@ def fetch_axie(mp_url, size):
 def buy_axie(axie, private_key, gas_price):
   # 合约地址: https://app.roninchain.com/address/ronin:fff9ce5f71ca6178d3beecedb61e7eff1602950e
   mp_contract_address='0xfff9ce5f71ca6178d3beecedb61e7eff1602950e'
+  # 这个invitor_address等同于账号里的邀请码功能，每笔交易成功后会官方会从收取的4.25%交易手续费中转1%到这个账户
+  # 你也可以将它改为自己的除购买账号以外的"其它"账号
   invitor_address = '0x8faf2b3f378d1ccb796b1e3adb1adf0a1a5e679d'
   ronin_rpc = 'https://api.roninchain.com/rpc'
   abi_file_path = os.path.abspath('marketplace_abi.json')
