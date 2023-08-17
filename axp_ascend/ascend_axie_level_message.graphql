@@ -1,0 +1,8 @@
+query GetAscendLevelMessage($axieId: ID!) {
+  ascendAxieLevelMessage(axieId: $axieId) {
+    axieId
+    deadline
+    level
+    signature
+  }
+}

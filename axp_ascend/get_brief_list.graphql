@@ -1,0 +1,12 @@
+query GetAxieBriefList($criteria: AxieSearchCriteria, $owner: String) {
+  axies(criteria: $criteria, owner: $owner) {
+    total
+    results {
+      id
+      axpInfo {
+        level
+        shouldAscend
+      }
+    }
+  }
+}

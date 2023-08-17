@@ -11,6 +11,7 @@
 
 ```
 pip install requests
+# 注意要安装6.x版本的web3库
 pip install web3
 pip install json
 ```
