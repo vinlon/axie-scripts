@@ -23,15 +23,15 @@ def fetch_axie(mp_url, size):
     },
     'operationName': 'GetAxieBriefList'
   }
-
-  response = graphql(data)
+  endpoint = 'https://graphql-gateway.axieinfinity.com/graphql'
+  response =  requests.post(endpoint, json = data)
   return response.json()['data']['axies']
 
 def buy_axie(axie, private_key, gas_price):
   # 合约地址: https://app.roninchain.com/address/ronin:fff9ce5f71ca6178d3beecedb61e7eff1602950e
   mp_contract_address='0xfff9ce5f71ca6178d3beecedb61e7eff1602950e'
   # 这个invitor_address等同于账号里的邀请码功能，每笔交易成功后会官方会从收取的4.25%交易手续费中转1%到这个账户
-  # 你也可以将它改为自己的除购买账号以外的"其它"账号
+  # 你也可以将它改为自己的购买账号以外的"其它"账号
   invitor_address = '0x8faf2b3f378d1ccb796b1e3adb1adf0a1a5e679d'
   ronin_rpc = 'https://api.roninchain.com/rpc'
   abi_file_path = os.path.abspath('marketplace_abi.json')
@@ -84,13 +84,7 @@ def buy_axie(axie, private_key, gas_price):
   signed_txn = signer.sign_transaction(transaction)
   tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
   return w3.eth.wait_for_transaction_receipt(tx_hash)
-  
-# 发送graphql请求
-def graphql(data): 
-  endpoint = 'https://graphql-gateway.axieinfinity.com/graphql'
-  headers = {
-  }
-  return requests.post(endpoint, json = data, headers = headers)
+
 
 # 从链接中提取查询参数
 def parse_criteria(url):
@@ -103,7 +97,7 @@ def parse_criteria(url):
 
   for param in query_params_list:
     key, value = param.split('=')
-    if key == 'breedCount':
+    if value.isdigit():
       value = int(value)
     if key in ['auctionTypes', 'sort']:
       continue
