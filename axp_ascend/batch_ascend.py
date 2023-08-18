@@ -93,7 +93,6 @@ def ascend(message, signer, w3):
   signed_txn = signer.sign_transaction(transaction)
   tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
   return w3.eth.wait_for_transaction_receipt(tx_hash)
-  print(tx_receipt)
 
 def main(private_key): 
   ronin_rpc = 'https://api.roninchain.com/rpc'
@@ -119,7 +118,7 @@ def main(private_key):
     tx_receipt = ascend(message, signer, w3)
 
     gas_used = Web3.from_wei(tx_receipt.gasUsed, 'ether') * Web3.to_wei(20, 'gwei');
-    transaction_hash = receipt.transactionHash.hex()
+    transaction_hash = tx_receipt.transactionHash.hex()
     if tx_receipt.status == 1:
       print(f",升级成功, 消耗gas: {gas_used}, 交易哈希: {transaction_hash}")
     else:

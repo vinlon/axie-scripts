@@ -161,7 +161,7 @@ def main():
       print(f"  AxieId={floor_id} 符合条件，提交购买请求", end = "...")
       tx_receipt = buy_axie(floor_axie, private_key, gas_price)
       gas_used = Web3.from_wei(tx_receipt.gasUsed, 'ether') * Web3.to_wei(int(gas_price), 'gwei');
-      transaction_hash = receipt.transactionHash.hex()
+      transaction_hash = tx_receipt.transactionHash.hex()
       if tx_receipt.status == 1:
         buy_count += 1
         print(f"请求成功, 消耗gas: {gas_used}, 交易哈希: {transaction_hash}")
