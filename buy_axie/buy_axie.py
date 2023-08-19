@@ -3,9 +3,11 @@ import json
 import os
 import sys
 import time
+import logging
 from web3 import Web3
 
-
+# 日志配置
+logging.basicConfig(filename='query.log', level=logging.INFO, format='%(asctime)s - %(message)s')
 
 ### ============方法定义 start ============
 # 根据市场链接查询axie列表
@@ -130,7 +132,7 @@ def main():
 
   input("\033[0;31;40m请确认上述配置是否有误, 确认无误后按回车键继续:\033[0m")
   
-  print(f'开始执行:')
+  print(f'开始查询(在query.log中可以查看查询记录):')
   buy_count = 0
   while True:
     # 延时1s执行
@@ -141,11 +143,11 @@ def main():
       axie_list = fetch_axie(mp_url, 1)
     except Exception as e :
       error_message = str(e.args[0]) if e.args else "未知错误"
-      log_info(f"查询失败: {error_message}")
+      logging.info(f"查询失败: {error_message}")
       continue
     results = axie_list['results']
     if (len(results) == 0) :
-      log_info("未查到符合条件的axie")
+      logging.info("未查到符合条件的axie")
       continue
 
     floor_axie = results[0]
@@ -154,11 +156,13 @@ def main():
     floor_price_eth = Web3.from_wei(floor_price, 'ether')
     floor_price_usd = float(floor_axie['order']['currentPriceUsd'])
     limit_price = Web3.to_wei(limit_price_eth, 'ether')
-    log_info(f"总数: {axie_list['total']}, 地板ID: {floor_id}, 地板价: {round(floor_price_eth, 6)}(weth) (${round(floor_price_usd, 3)})")
+    logging.info(f"总数: {axie_list['total']}, 地板ID: {floor_id}, 地板价: {round(floor_price_eth, 6)}(weth) (${round(floor_price_usd, 3)})")
+    print('', end = '.', flush=True)
 
     if (floor_price <= limit_price):
       # 购买axie
-      print(f"  AxieId={floor_id} 符合条件，提交购买请求", end = "...")
+      print('')
+      print(f"  AxieId={floor_id} 符合条件，提交购买请求", end = '...')
       tx_receipt = buy_axie(floor_axie, private_key, gas_price)
       gas_used = Web3.from_wei(tx_receipt.gasUsed, 'ether') * Web3.to_wei(int(gas_price), 'gwei');
       transaction_hash = tx_receipt.transactionHash.hex()
