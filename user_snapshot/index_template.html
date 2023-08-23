@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title></title>
+
+  <style type="text/css">
+    .flex-row {
+      display: flex;
+      flex-direction: row;
+    }
+    .flex-col {
+      display: flex;
+      flex-direction: column;
+    }
+    .justify-center {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+    }
+    .justify-between {
+      display: flex;
+      justify-content: space-between;
+    }
+    .pl-5 {
+      padding-left: 5px;
+    }
+    .pl-10 {
+      padding-left: 10px;
+    }
+    .pl-20 {
+      padding-left: 20px;
+    }
+    .pt-20 {
+      padding-top: 20px;
+    }
+    .pt-10 {
+      padding-top: 10px;
+    }
+    .pb-20 {
+      padding-bottom: 20px;
+    }
+    .user_row {
+      border-bottom: 1px solid black;
+      width: 200%;
+    }
+    .user_info {
+      width: 200px;
+    }
+    .name {
+      font-size: 28px;
+      font-weight: bold;
+    }
+    .star {
+      font-size: 24px;
+    }
+    .star img {
+      width: 30px;
+      height: 30px;
+    }
+    .charm img {
+        width: auto;
+        object-fit: contain;
+        height: 20px;
+        padding-bottom: 2px;
+    }
+    .charm div {
+      text-align: center;
+      color: gray;
+    }
+    .charm {
+      padding-left: 5px;
+    }
+    .rune {
+      margin-left: -20px;
+      height: 30px; 
+      width: 30px
+    }
+    .user_item span {
+      width: 120px;
+    }
+    .user_item img {
+      width: auto;
+      object-fit: contain;
+      height: 20px;
+    }
+    .win {
+      color: green;
+      font-weight: bold;
+    }
+    .lose {
+      color: red;
+      font-weight: bold;
+    }
+    .draw {
+      color: gray;
+      font-weight: bold;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      new Vue({
+          el: '#app',
+          data: {
+              data_list: [],
+              data_loaded: false,
+          },
+          mounted() {
+              // Fetch data from Python script or set it directly
+              this.data_list = [...]; // Fill with your data
+              this.data_loaded = true
+              console.log(this.data_list)
+          },
+          methods: {
+            get_rate(count, total) {
+              return Math.round((count / total) * 100) + "%";
+            }
+          }
+      });
+    })
+  </script>
+</head>
+<body>
+  <div class="container" id="app">
+    <div class="flex-row user_row" v-for="data in data_list">
+      <div class="flex-col user_info">
+        <div class="justify-center pt-10 name">{{data.user_name}}</div>
+        <div class="flex-row justify-center star">
+          <img src="https://axies.io/_next/image?url=%2Fimages%2Fstar.png&w=48&q=75">
+          {{data.stars}}
+        </div>
+        <div class="flex-row justify-between">
+          <div class="flex-col win">
+            <div class="justify-center">win</div>
+            <div class="justify-center">{{get_rate(data.battle.win_count, data.battle.total)}}</div>
+          </div>
+          <div class="flex-col pl-5 lose">
+            <div class="justify-center">lose</div>
+            <div class="justify-center">{{get_rate(data.battle.lose_count, data.battle.total)}}</div>
+          </div>
+          <div class="flex-col pl-5 draw">
+            <div class="justify-center">draw</div>
+            <div class="justify-center">{{get_rate(data.battle.total - data.battle.win_count - data.battle.lose_count, data.battle.total)}}</div>
+          </div>
+        </div>
+      </div>
+      <div class="flex-row pl-20" v-for="fighter in data.fighters">
+        <div class="flex-col">
+          <div class="flex-row justify-center">
+            <img :src="'https://axies.io/cdn-cgi/image/width=200,quality=100/https://axiecdn.axieinfinity.com/axies/'+fighter.axie_id+'/axie/axie-full-transparent.png'" style="height: 80px; width: 110px">
+            <img class="rune" :src="fighter.rune_image">
+          </div>
+          <div class="flex-row">
+            <div class="flex-col charm" v-for="(charm_image, part) in fighter.charm_images">
+              <img :src="charm_image" style="height: 20px;">
+              <img :src="'https://axies.io/_next/image?url=%2Fimages%2Ficons%2Fparts%2F'+part+'.png&w=32&q=75'"> 
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="flex-col pl-20">
+        <div class="flex-row">
+          <div class="flex-col" v-if="data.general_items.slp">
+            <div>SLP</div>
+            <div>{{data.general_items.slp.quantity || 0}}</div>
+          </div>    
+          <div class="flex-col pl-20" v-if="data.general_items.moonshard">
+            <div>Moonshard</div>
+            <div>{{data.general_items.moonshard.quantity || 0}}</div>
+          </div>      
+          <div class="flex-col pl-20" v-if="data.general_items.emaxs">
+            <div>EMAXS</div>
+            <div>{{data.general_items.emaxs.quantity || 0}}</div>
+          </div>    
+          <div class="flex-col pl-20" v-if="data.general_items.maxs">
+            <div>MAXS</div>
+            <div>{{data.general_items.maxs.quantity || 0}}</div>
+          </div>    
+          <div class="flex-col pl-20" v-if="data.general_items.honor_medal">
+            <div>HONOR_MEDAL</div>
+            <div>{{data.general_items.honor_medal.quantity || 0}}</div>
+          </div>        
+        </div>
+        <div class="flex-row">
+          <div class="flex-col" style="min-width: 500px">
+            <div class="flex-row pt-10 user_item">
+              <span>Rare Rune: </span>
+              <img v-for="(rune, key) in data.rune_items_Rare" class="pl-5" :src="rune.image_url">
+            </div>
+            <div class="flex-row pt-10 user_item">
+              <span>Epic Rune: </span>
+              <img v-for="(rune, key) in data.rune_items_Epic" class="pl-5" :src="rune.image_url">
+            </div>
+            <div class="flex-row pt-10 user_item">
+              <span>Mystic Rune: </span>
+              <img v-for="(rune, key) in data.rune_items_Mystic" class="pl-5" :src="rune.image_url">
+            </div>
+          </div>
+          <div class="flex-col pl-20">
+            <div class="flex-row pt-10 user_item" style="min-width: 500px">
+              <span>Rare Charm: </span>
+              <img v-for="(charm, key) in data.charm_items_Rare" class="pl-5" :src="charm.image_url">
+            </div>
+            <div class="flex-row pt-10 user_item">
+              <span>Epic Charm: </span>
+              <img v-for="(charm, key) in data.charm_items_Epic" class="pl-5" :src="charm.image_url">
+            </div>
+            <div class="flex-row pt-10 user_item">
+              <span>Mystic Charm: </span>
+              <img v-for="(charm, key) in data.charm_items_Mystic" class="pl-5" :src="charm.image_url">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
