@@ -72,31 +72,31 @@ def get_expected_state(axie_id):
 def send_offer(signer, access_token, axie, offer_price):
   with open('sign_message_template.json', 'r') as file:
     message = json.load(file)
-  order = axie['order']
-  asset = order['assets'][0]
   axie_id = axie['id']
   # 注意: 签名时的数据结构和graphql请求时的不太一样
   started_at = int(datetime.now().timestamp())
   expired_at = int((datetime.now() + timedelta(days=3)).timestamp())
   expected_state =  int(get_expected_state(axie_id), 16)
+  payment_token = '0xc99a6a985ed2cac1ef41640596c5a5f9f4e19ef5'
+  axie_address = '0x32950db2a7164ae833121501c797d79e7b79d74c'
   message['message'] = {
     'maker': signer.address,
     'kind': 0,
     'assets': [{
       'erc': 1,
-      'addr': asset['address'],
+      'addr': axie_address,
       'id': int(axie_id),
-      'quantity': int(asset['quantity'])
+      'quantity': 0
     }],
     'expiredAt': expired_at,
-    'paymentToken': order['paymentToken'],
+    'paymentToken': payment_token,
     'startedAt': started_at,
     'basePrice': int(offer_price),
     'endedAt': 0,
     'endedPrice': 0,
     'expectedState': expected_state,
-    'nonce': int(order['nonce']),
-    'marketFeePercentage': int(order['marketFeePercentage'])
+    'nonce': 0,
+    'marketFeePercentage': 425
   }
   sign_result = signer.sign_message(encode_structured_data(message))
   with open('create_order.graphql', 'r') as file:
@@ -107,10 +107,10 @@ def send_offer(signer, access_token, axie, offer_price):
         # 注意: 签名时的数据结构和graphql请求时的不太一样
         'order': {
           'assets': [{
-            'erc': asset['erc'],
-            'address': asset['address'],
+            'erc': 'Erc721',
+            'address': axie_address,
             'id': axie_id,
-            'quantity': asset['quantity']
+            'quantity': '0'
           }],
           'basePrice': str(offer_price),
           'endedAt': 0,
@@ -118,7 +118,7 @@ def send_offer(signer, access_token, axie, offer_price):
           'expectedState': str(expected_state),
           'expiredAt': expired_at,
           'kind': 'Offer',
-          'nonce': order['nonce'],
+          'nonce': 0,
           'startedAt': started_at
         },
         'signature': sign_result.signature.hex(),
@@ -129,7 +129,6 @@ def send_offer(signer, access_token, axie, offer_price):
   headers = {
     'authorization': f"Bearer {access_token}" 
   }
-
   endpoint = 'https://graphql-gateway.axieinfinity.com/graphql'
   response =  requests.post(endpoint, json = data, headers = headers)
   if 'errors' in response.json():
@@ -173,10 +172,6 @@ def parse_criteria(url):
       query_params[key] = [value]
   return query_params
 
-def log_info(msg):
-  current = time.strftime("%Y-%m-%d %H:%M:%S",time.localtime())  
-  print(f"[{current}] {msg}")
-
 def main(): 
   # 读取配置
   with open('_batch_offer_env', 'r') as file:
@@ -194,12 +189,20 @@ def main():
   print(f'OFFER价格: {offer_price}')
   print(f'发送OFFER数量: {offer_count}')
 
-  input("\033[0;31;40m请确认上述配置是否有误, 确认无误后按回车键继续:\033[0m")
-
   # 查询列表
   axie_list = fetch_axie(mp_url, 100)
   results = axie_list['results']
-  print(f"查询符合条件的前100条数据,返回结果数量:{len(results)}")
+  if len(results) == 0:
+    print('未查到符合查询条件的记录')
+    return
+  floor_axie = results[0]
+  floor_info = f",第一个符合条件的ID为{floor_axie['id']}"
+  if 'order' in floor_axie:
+    floor_info += f",价格为:{Web3.from_wei(int(floor_axie['order']['currentPrice']), 'ether')}"
+  else:
+    floor_info += ',未出售'
+  print(f"共有{axie_list['total']}符合条件的记录,返回结果数量:{len(results)}{floor_info}")
+  input("\033[0;31;40m请确认上述配置是否有误, 确认无误后按回车键继续:\033[0m")
 
   ronin_rpc = 'https://api.roninchain.com/rpc'
   provider = Web3.HTTPProvider(ronin_rpc)
@@ -214,7 +217,6 @@ def main():
     count += 1
     if count >= offer_count:
       break;
-
 
 
 ### ============方法定义 end =============
