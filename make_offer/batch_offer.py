@@ -2,7 +2,7 @@ import requests
 import json
 import os
 import sys
-import time
+from datetime import datetime, timedelta
 from eth_account.messages import encode_defunct
 from eth_account.messages import encode_structured_data
 from web3 import Web3
@@ -43,6 +43,32 @@ def fetch_axie(mp_url, size):
   response =  requests.post(endpoint, json = data)
   return response.json()['data']['axies']
 
+def get_expected_state(axie_id):
+  url = "https://api-gateway.skymavis.com/rpc"
+  mp_contract_address = '0xfff9ce5f71ca6178d3beecedb61e7eff1602950e'
+  # 不清楚下面数据的生成规则 ，但通过对比知道只需要替换其中和axie_id有关的部分就可以了
+  data = f"0x95a4ec0000000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000e4f524445525f45584348414e474500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c4f99fdd2800000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000032950db2a7164ae833121501c797d79e7b79d74c000000000000000000000000{format(int(axie_id), 'x').zfill(40)}000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+  payload = json.dumps({
+    'id': 50,
+    'jsonrpc': '2.0',
+    'params': [
+      {
+        'to': mp_contract_address,
+        'data': data
+      },
+      'latest'
+    ],
+    'method': 'eth_call'
+  })
+  headers = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'X-API-Key': 'bca6LjK8Xx96tcu881OrT0TmhnvvngnA'
+  }
+  response = requests.request("POST", url, data=payload, headers = headers)
+  return response.json()['result']
+
+
 def send_offer(signer, access_token, axie, offer_price):
   with open('sign_message_template.json', 'r') as file:
     message = json.load(file)
@@ -50,8 +76,11 @@ def send_offer(signer, access_token, axie, offer_price):
   asset = order['assets'][0]
   axie_id = axie['id']
   # 注意: 签名时的数据结构和graphql请求时的不太一样
+  started_at = int(datetime.now().timestamp())
+  expired_at = int((datetime.now() + timedelta(days=3)).timestamp())
+  expected_state =  int(get_expected_state(axie_id), 16)
   message['message'] = {
-    'maker': order['maker'],
+    'maker': signer.address,
     'kind': 0,
     'assets': [{
       'erc': 1,
@@ -59,18 +88,17 @@ def send_offer(signer, access_token, axie, offer_price):
       'id': int(axie_id),
       'quantity': int(asset['quantity'])
     }],
-    'expiredAt': int(order['expiredAt']),
+    'expiredAt': expired_at,
     'paymentToken': order['paymentToken'],
-    'startedAt': int(order['startedAt']),
+    'startedAt': started_at,
     'basePrice': int(offer_price),
-    'endedAt': int(order['endedAt']),
-    'endedPrice': int(order['endedPrice']),
-    'expectedState': 0,
+    'endedAt': 0,
+    'endedPrice': 0,
+    'expectedState': expected_state,
     'nonce': int(order['nonce']),
     'marketFeePercentage': int(order['marketFeePercentage'])
   }
   sign_result = signer.sign_message(encode_structured_data(message))
-  print(sign_result.signature.hex())
   with open('create_order.graphql', 'r') as file:
     query = file.read()
   data = {
@@ -85,13 +113,13 @@ def send_offer(signer, access_token, axie, offer_price):
             'quantity': asset['quantity']
           }],
           'basePrice': str(offer_price),
-          'endedAt': order['endedAt'],
-          'endedPrice': str(order['endedPrice']),
-          'expectedState': '61162214077330396652601178591922430472979244393074746123949999818242734682784',
-          'expiredAt': order['expiredAt'],
+          'endedAt': 0,
+          'endedPrice': "0",
+          'expectedState': str(expected_state),
+          'expiredAt': expired_at,
           'kind': 'Offer',
           'nonce': order['nonce'],
-          'startedAt': order['startedAt']
+          'startedAt': started_at
         },
         'signature': sign_result.signature.hex(),
     },
@@ -101,12 +129,13 @@ def send_offer(signer, access_token, axie, offer_price):
   headers = {
     'authorization': f"Bearer {access_token}" 
   }
-  print(data)
-  print(headers)
 
   endpoint = 'https://graphql-gateway.axieinfinity.com/graphql'
   response =  requests.post(endpoint, json = data, headers = headers)
-  print(response.text)
+  if 'errors' in response.json():
+    print(response.json()['errors'][0]['message'])
+  else:
+    print('offer success')
 
 
 def get_token(signer):
@@ -169,11 +198,8 @@ def main():
 
   # 查询列表
   axie_list = fetch_axie(mp_url, 100)
-  
   results = axie_list['results']
-  if (len(results) == 0) :
-    print("未查到符合条件的axie")
-    return
+  print(f"查询符合条件的前100条数据,返回结果数量:{len(results)}")
 
   ronin_rpc = 'https://api.roninchain.com/rpc'
   provider = Web3.HTTPProvider(ronin_rpc)
@@ -181,10 +207,13 @@ def main():
   signer = w3.eth.account.from_key(private_key)
   access_token = get_token(signer)
   # 发送OFFER
-  offer_count = 0
+  count = 0
   for axie in results:
+    print(f"send offer to {axie['id']}", end = '...')
     send_offer(signer, access_token, axie, Web3.to_wei(offer_price, 'ether'))
-    break;
+    count += 1
+    if count >= offer_count:
+      break;
 
 
 
