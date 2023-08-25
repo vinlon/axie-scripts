@@ -29,9 +29,9 @@ pip install json
 
 
 ```
+private_key: 用于购买axie的账号，账号下需要有足够数量的ron和weth" 
 market_place_url: 特定筛选条件的市场链接
 limit_price: 价格低于此限制就购买(单位: weth)
-secret_key: 用于购买axie的账号，账号下需要有足够数量的ron和weth" 
 max_buy: 购买数量,超过此购买数量后即停止执行
 gas_price: gas价格，同时提交请求情况下，gas越高越容易成交，默认20(单位GWEI)
 

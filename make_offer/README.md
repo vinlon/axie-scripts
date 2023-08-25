@@ -6,6 +6,7 @@
 
 1. 一定要单独申请一个新的账号，只充够用的ron和weth进去，一方面防止开发者居心不良设置后门盗走你的私钥，另一方面也防止代码中有逻辑bug导致你损失太多资金.
 
+2. 发送offer不需要gas费，但取消offer需要
 
 
 ## 运行环境准备
@@ -29,10 +30,10 @@ pip install json
 
 
 ```
+private_key: 用于发送offer的账号，账号下需要有足够数量的ron和weth
 market_place_url: 特定筛选条件的市场链接, 支持选中【Not For Sale】筛选条件
 offer_price: offer价格
 offer_count: 发送offer数量
-secret_key: 用于发送offer的账号，账号下需要有足够数量的ron和weth
 ```
 
 ### 运行脚本
