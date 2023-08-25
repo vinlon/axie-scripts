@@ -25,9 +25,9 @@ pip install json
 ### 单次使用
 
 ```
-# 注意将 {script_path} 替换成真实路径
+# 在脚本所在根目录下执行
 
-python3 {script_path}/blessing/batch_blessing.py
+python3 batch_blessing.py
 ```
 
 ### 定时任务
@@ -36,7 +36,7 @@ python3 {script_path}/blessing/batch_blessing.py
 # 注意将 {script_path} 和 {python_path} 替换成真实路径
 # 每天中行12:18自动执行脚本,并将执行日志写入run.log文件中
 
-18 12 * * * cd {script_path}/blessing/ && {python_path}/python3 batch_blessing.py >> run.log 2>&1
+18 12 * * * cd {script_path} && {python_path}/python3 batch_blessing.py >> run.log 2>&1
 
 ```
 

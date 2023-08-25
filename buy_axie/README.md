@@ -20,8 +20,6 @@ pip install web3
 pip install json
 ```
 
-[windows下安装python3](https://www.ycpai.cn/python/ePZDG6wR.html)
-
 
 ### 配置文件使用说明
 
@@ -32,9 +30,9 @@ pip install json
 
 ```
 market_place_url: 特定筛选条件的市场链接
-limit_price: 价格低于此限制就购买(单位: weth),
+limit_price: 价格低于此限制就购买(单位: weth)
 secret_key: 用于购买axie的账号，账号下需要有足够数量的ron和weth" 
-max_buy: 购买数量,超过此购买数量后即停止执行,
+max_buy: 购买数量,超过此购买数量后即停止执行
 gas_price: gas价格，同时提交请求情况下，gas越高越容易成交，默认20(单位GWEI)
 
 ```
@@ -42,5 +40,7 @@ gas_price: gas价格，同时提交请求情况下，gas越高越容易成交，
 ### 运行脚本
 
 ```
-python3 {script_path}/buy_axie/buy_axie.py
+# 在脚本所在根目录下执行
+
+python3 buy_axie.py
 ```

@@ -24,7 +24,7 @@ pip install json
 ### 单次使用
 
 ```
-# 注意将 {script_path} 替换成真实路径
+# 在脚本所在根目录下执行
 
-python3 {script_path}/axp_ascend/batch_ascend.py
+python3 batch_ascend.py
 ```
