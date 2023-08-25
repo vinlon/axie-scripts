@@ -38,16 +38,10 @@ def get_rune_image(rune_id):
   return f"https://axies.io/_next/image?url=https%3A%2F%2Fstorage.googleapis.com%2Forigin-production%2Fassets%2Fitem%2F{rune_id}.png&w=48&q=75"
 
 # 查询用户数据
-def extract_user_info(user_id):
+def extract_user_info(user_id, all_runes, all_charms):
+  print('查询对战信息', end = "...", flush = True)
   battles = list_battles(user_id)
   data = {}
-  # 从文件中读取charms数据
-  with open('data_charms.json', 'r') as json_file:
-      all_charms = json.load(json_file)
-  # 从文件中读取runes数据
-  with open('data_runes.json', 'r') as json_file:
-      all_runes = json.load(json_file)
-
   latest_battle = battles[0]
   rewards = latest_battle['rewards']
   for reward in rewards:
@@ -107,11 +101,13 @@ def extract_user_info(user_id):
     'second_win_count': second_win_count,
     'second_lose_count': second_lose_count,
   }
+  print('查询资产', end = "", flush = True)
   general_item_ids = [
     "crafting_exp", "emaxs", "maxs", 'honor_medal', "moonshard", "moon_crystal",
     "slp", "selection_class_material_01"
   ]
   data['general_items'] = list_user_items(user_id, general_item_ids, {})
+  print('', end = ".", flush = True)
   # runes
   with open('data_runes_per_rarity.json', 'r') as file:
     runes = json.load(file)
@@ -119,6 +115,8 @@ def extract_user_info(user_id):
     if rarity not in ['Rare', 'Epic', 'Mystic']:
       continue
     data['rune_items_' + rarity] = list_user_items(user_id, rune_ids, all_runes)
+  print('', end = ".", flush = True)
+
 
   # charms
   with open('data_charms_per_rarity.json', 'r') as file:
@@ -127,6 +125,7 @@ def extract_user_info(user_id):
     if rarity not in ['Rare', 'Epic', 'Mystic']:
       continue
     data['charm_items_' + rarity] = list_user_items(user_id, charm_ids, all_charms)
+  print('', end = ".", flush = True)
   return data
 
 datas = {}
@@ -134,10 +133,17 @@ datas = {}
 with open('data_user_map.json', 'r') as file:
   user_map = json.load(file)
 for user_id, user_name in user_map.items():
-  data = extract_user_info(user_id)
+  print(f"用户[{user_name}]开始处理", end = "...", flush = True)
+  # 从文件中读取charms数据
+  with open('data_charms.json', 'r') as json_file:
+      all_charms = json.load(json_file)
+  # 从文件中读取runes数据
+  with open('data_runes.json', 'r') as json_file:
+      all_runes = json.load(json_file)
+  data = extract_user_info(user_id, all_runes, all_charms)
   data['user_name'] = user_name
   datas[user_id] = data
-  print(f"用户[{user_name}]数据处理完成")
+  print("处理完成")
 
 with open('index_template.html', 'r') as template_file:
     template = template_file.read()

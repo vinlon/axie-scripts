@@ -78,13 +78,30 @@
       height: 30px; 
       width: 30px
     }
-    .user_item span {
+    .user_item .title {
       width: 120px;
     }
     .user_item img {
       width: auto;
       object-fit: contain;
       height: 20px;
+      padding-right: 5px;
+    }
+    .relative {
+      position: relative;
+      display: inline-block;
+    }
+
+    .badge {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      background-color: red;
+      color: white;
+      border-radius: 50%;
+      width: 15px;
+      text-align: center;
+      font-size: 12px;
     }
     .win {
       color: green;
@@ -184,33 +201,52 @@
             <div>{{data.general_items.honor_medal.quantity || 0}}</div>
           </div>        
         </div>
+        
         <div class="flex-row">
           <div class="flex-col" style="min-width: 500px">
             <div class="flex-row pt-10 user_item">
-              <span>Rare Rune: </span>
-              <img v-for="(rune, key) in data.rune_items_Rare" class="pl-5" :src="rune.image_url">
+              <span class="title">Rare Rune: </span>
+              <div v-for="(rune, key) in data.rune_items_Rare" class="relative">
+                <img class="pl-5" :src="rune.image_url">  
+                <span class="badge">{{ rune.quantity }}</span>
+              </div>
             </div>
             <div class="flex-row pt-10 user_item">
-              <span>Epic Rune: </span>
-              <img v-for="(rune, key) in data.rune_items_Epic" class="pl-5" :src="rune.image_url">
+              <span class="title">Epic Rune: </span>
+              <div v-for="(rune, key) in data.rune_items_Epic" class="relative">
+                <img class="pl-5" :src="rune.image_url">  
+                <span class="badge">{{ rune.quantity }}</span>
+              </div>
             </div>
             <div class="flex-row pt-10 user_item">
-              <span>Mystic Rune: </span>
-              <img v-for="(rune, key) in data.rune_items_Mystic" class="pl-5" :src="rune.image_url">
+              <span class="title">Mystic Rune: </span>
+              <div v-for="(rune, key) in data.rune_items_Mystic" class="relative">
+                <img class="pl-5" :src="rune.image_url">  
+                <span class="badge">{{ rune.quantity }}</span>
+              </div>
             </div>
           </div>
           <div class="flex-col pl-20">
-            <div class="flex-row pt-10 user_item" style="min-width: 500px">
-              <span>Rare Charm: </span>
-              <img v-for="(charm, key) in data.charm_items_Rare" class="pl-5" :src="charm.image_url">
+            <div class="flex-row pt-10 user_item">
+              <span class="title">Rare Charm: </span>
+              <div v-for="(rune, key) in data.charm_items_Rare" class="relative">
+                <img class="pl-5" :src="rune.image_url">  
+                <span class="badge">{{ rune.quantity }}</span>
+              </div>
             </div>
             <div class="flex-row pt-10 user_item">
-              <span>Epic Charm: </span>
-              <img v-for="(charm, key) in data.charm_items_Epic" class="pl-5" :src="charm.image_url">
+              <span class="title">Epic Charm: </span>
+              <div v-for="(rune, key) in data.charm_items_Epic" class="relative">
+                <img class="pl-5" :src="rune.image_url">  
+                <span class="badge">{{ rune.quantity }}</span>
+              </div>
             </div>
             <div class="flex-row pt-10 user_item">
-              <span>Mystic Charm: </span>
-              <img v-for="(charm, key) in data.charm_items_Mystic" class="pl-5" :src="charm.image_url">
+              <span class="title">Mystic Charm: </span>
+              <div v-for="(rune, key) in data.charm_items_Mystic" class="relative">
+                <img class="pl-5" :src="rune.image_url">  
+                <span class="badge">{{ rune.quantity }}</span>
+              </div>
             </div>
           </div>
         </div>
