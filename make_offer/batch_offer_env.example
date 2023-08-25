@@ -1,0 +1,6 @@
+{
+    "private_key": "0x...YOU_PRIVATE_KEY...",
+    "market_place_url": "https://app.axieinfinity.com/marketplace/axies/?auctionTypes=Sale&breedCount=0&breedCount=0",
+    "offer_price": 0.00001,
+    "offer_count": 1
+}

@@ -1,0 +1,42 @@
+mutation CreateOrder($order: InputOrder!, $signature: String!) {
+  createOrder(order: $order, signature: $signature) {
+    ...OrderInfo
+    __typename
+  }
+}
+
+fragment OrderInfo on Order {
+  id
+  maker
+  kind
+  assets {
+    ...AssetInfo
+    __typename
+  }
+  expiredAt
+  paymentToken
+  startedAt
+  basePrice
+  endedAt
+  endedPrice
+  expectedState
+  nonce
+  marketFeePercentage
+  signature
+  hash
+  duration
+  timeLeft
+  currentPrice
+  suggestedPrice
+  currentPriceUsd
+  __typename
+}
+
+fragment AssetInfo on Asset {
+  erc
+  address
+  id
+  quantity
+  orderId
+  __typename
+}
