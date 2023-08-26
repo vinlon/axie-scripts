@@ -166,10 +166,16 @@ def parse_criteria(url):
     key, value = param.split('=')
     if value.isdigit():
       value = int(value)
+    if key == 'excludeParts':
+      key = 'parts'
+      value = '!' + value
+    if key in ['auctionTypes', 'sort']:
+      continue
     elif key in query_params:
       query_params[key].append(value)
     else:
       query_params[key] = [value]
+
   return query_params
 
 def main(): 
@@ -212,7 +218,7 @@ def main():
   # 发送OFFER
   count = 0
   for axie in results:
-    print(f"send offer to {axie['id']}", end = '...')
+    print(f"send offer to {axie['id']}", end = ' ... ')
     send_offer(signer, access_token, axie, Web3.to_wei(offer_price, 'ether'))
     count += 1
     if count >= offer_count:

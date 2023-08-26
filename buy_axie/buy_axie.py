@@ -96,17 +96,20 @@ def parse_criteria(url):
   # 将查询字符串拆分为键值对
   query_params_list = query_string.split('&')
   query_params = {}
-
   for param in query_params_list:
     key, value = param.split('=')
     if value.isdigit():
       value = int(value)
+    if key == 'excludeParts':
+      key = 'parts'
+      value = '!' + value
     if key in ['auctionTypes', 'sort']:
       continue
     elif key in query_params:
       query_params[key].append(value)
     else:
       query_params[key] = [value]
+
   return query_params
 
 def log_info(msg):
@@ -132,22 +135,23 @@ def main():
 
   input("\033[0;31;40m请确认上述配置是否有误, 确认无误后按回车键继续:\033[0m")
   
-  print(f'开始查询(在query.log中可以查看查询记录):')
+  print(f'开始查询(只输出前10条记录，后续查询记录可以在query.log中查看):')
   buy_count = 0
+  loop = 0
   while True:
     # 延时1s执行
     time.sleep(1)
-    
+    loop += 1
     try: 
       # 查询列表，只取价格最低的一个
       axie_list = fetch_axie(mp_url, 1)
     except Exception as e :
       error_message = str(e.args[0]) if e.args else "未知错误"
-      logging.info(f"查询失败: {error_message}")
+      log_info(f"查询失败: {error_message}")
       continue
     results = axie_list['results']
     if (len(results) == 0) :
-      logging.info("未查到符合条件的axie")
+      log_info("未查到符合条件的axie")
       continue
 
     floor_axie = results[0]
@@ -156,8 +160,12 @@ def main():
     floor_price_eth = Web3.from_wei(floor_price, 'ether')
     floor_price_usd = float(floor_axie['order']['currentPriceUsd'])
     limit_price = Web3.to_wei(limit_price_eth, 'ether')
-    logging.info(f"总数: {axie_list['total']}, 地板ID: {floor_id}, 地板价: {round(floor_price_eth, 6)}(weth) (${round(floor_price_usd, 3)})")
-    print('', end = '.', flush=True)
+    msg = f"总数: {axie_list['total']}, 地板ID: {floor_id}, 地板价: {round(floor_price_eth, 6)}(weth) (${round(floor_price_usd, 3)})"
+    if (loop > 10):
+      logging.info(msg)
+      print('', end = '.', flush=True)
+    else: 
+        log_info(msg)
 
     if (floor_price <= limit_price):
       # 购买axie
