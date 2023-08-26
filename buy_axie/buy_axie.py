@@ -13,7 +13,7 @@ logging.basicConfig(filename='query.log', level=logging.INFO, format='%(asctime)
 # 根据市场链接查询axie列表
 def fetch_axie(mp_url, size):
   # 从文件中读取query内容
-  with open('get_brief_list.graphql', 'r') as file:
+  with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'get_brief_list.graphql'), 'r') as file:
     query = file.read()
 
   data = {
@@ -36,11 +36,9 @@ def buy_axie(axie, private_key, gas_price):
   # 你也可以将它改为自己的购买账号以外的"其它"账号
   invitor_address = '0x8faf2b3f378d1ccb796b1e3adb1adf0a1a5e679d'
   ronin_rpc = 'https://api.roninchain.com/rpc'
-  abi_file_path = os.path.abspath('marketplace_abi.json')
   provider = Web3.HTTPProvider(ronin_rpc)
   w3 = Web3(provider)
-
-  with open(abi_file_path, 'r') as file:
+  with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'marketplace_abi.json'), 'r') as file:
       abi = json.load(file)
   mp_contract = w3.eth.contract(
       address=Web3.to_checksum_address(mp_contract_address), 
@@ -91,12 +89,14 @@ def buy_axie(axie, private_key, gas_price):
 # 从链接中提取查询参数
 def parse_criteria(url):
   # 获取查询字符串部分
-  query_string = url.split('?')[1]
+  query_string = url.split('?')[1] if '?' in url else ''
 
   # 将查询字符串拆分为键值对
   query_params_list = query_string.split('&')
   query_params = {}
   for param in query_params_list:
+    if '=' not in param:
+      continue
     key, value = param.split('=')
     if value.isdigit():
       value = int(value)
@@ -118,7 +118,7 @@ def log_info(msg):
 
 def main(): 
   # 读取配置
-  with open('_buy_axie_env', 'r') as file:
+  with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '_buy_axie_env'), 'r') as file:
     config = json.load(file)
 
   limit_price_eth = config.get('limit_price')
@@ -179,6 +179,7 @@ def main():
         print(f"请求成功, 消耗gas: {gas_used}, 交易哈希: {transaction_hash}")
         if (buy_count >= max_buy):
           print(f"购买数量达到{max_buy},完成购买任务，终止执行")
+          break;
       else:
         print(f"请求失败, 消耗gas:{gas_used}, 交易哈希: {transaction_hash}")
 
