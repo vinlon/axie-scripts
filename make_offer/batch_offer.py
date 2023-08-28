@@ -7,12 +7,11 @@ from eth_account.messages import encode_defunct
 from eth_account.messages import encode_structured_data
 from web3 import Web3
 
-
 ### ============方法定义 start ============
 # 根据市场链接查询axie列表
 def fetch_axie(mp_url, size):
   # 从文件中读取query内容
-  with open('get_brief_list.graphql', 'r') as file:
+  with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'get_brief_list.graphql'), 'r') as file:
     query = file.read()
 
   criteria = parse_criteria(mp_url)
@@ -70,7 +69,7 @@ def get_expected_state(axie_id):
 
 
 def send_offer(signer, access_token, axie, offer_price):
-  with open('sign_message_template.json', 'r') as file:
+  with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sign_message_template.json'), 'r') as file:
     message = json.load(file)
   axie_id = axie['id']
   # 注意: 签名时的数据结构和graphql请求时的不太一样
@@ -99,7 +98,7 @@ def send_offer(signer, access_token, axie, offer_price):
     'marketFeePercentage': 425
   }
   sign_result = signer.sign_message(encode_structured_data(message))
-  with open('create_order.graphql', 'r') as file:
+  with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'create_order.graphql'), 'r') as file:
     query = file.read()
   data = {
     'query': query,
@@ -180,7 +179,7 @@ def parse_criteria(url):
 
 def main(): 
   # 读取配置
-  with open('_batch_offer_env', 'r') as file:
+  with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '_batch_offer_env'), 'r') as file:
     config = json.load(file)
   offer_price = config.get('offer_price')
   offer_count = int(config.get('offer_count'))
