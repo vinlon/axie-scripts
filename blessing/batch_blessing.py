@@ -11,11 +11,10 @@ def start(private_key):
     # 合约地址: https://app.roninchain.com/address/ronin:9d3936dbd9a794ee31ef9f13814233d435bd806c
     blessing_contract_address='0x9d3936dbd9a794ee31ef9f13814233d435bd806c'
     ronin_rpc = 'https://api.roninchain.com/rpc'
-    abi_file_path = os.path.abspath('blessing_abi.json')
     provider = Web3.HTTPProvider(ronin_rpc)
     w3 = Web3(provider)
 
-    with open(abi_file_path, 'r') as file:
+    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'blessing_abi.json'), 'r') as file:
         abi = json.load(file)
     contract = w3.eth.contract(
         address=Web3.to_checksum_address(blessing_contract_address), 
@@ -55,7 +54,7 @@ def activate_streak(w3, contract, signer):
 
 ### ============脚本执行 start =============
 # 从.blessing_keys文件中读取想要祈福的账号
-with open('_batch_blessing_env', 'r') as file:
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '_batch_blessing_env'), 'r') as file:
   # 使用 json.load() 方法加载数据
   keys = json.load(file)
 
