@@ -32,6 +32,9 @@ python3 batch_blessing.py
 
 ### 定时任务
 
+
+- Mac电脑下使用crontab配置定时任务
+
 ```
 # 注意将 {script_path} 和 {python_path} 替换成真实路径
 # 每天中行12:18自动执行脚本,并将执行日志写入run.log文件中
@@ -40,4 +43,9 @@ python3 batch_blessing.py
 
 ```
 
+- windows电脑请参考下面链接内的方法
+
+```
+https://blog.csdn.net/B11050729/article/details/131250072
+```
 

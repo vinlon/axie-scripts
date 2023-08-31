@@ -6,6 +6,7 @@
 
 1. 一定要单独申请一个新的账号，只充够用的ron和weth进去，一方面防止开发者居心不良设置后门盗走你的私钥，另一方面也防止代码中有逻辑bug导致你损失太多资金.
 
+2. 创建新的账号后要先登录 https://app.axieinfinity.com/marketplace 随便选择一个axie,点击购买(不用真的购买)，选择使用WETH支付，这里应该会要求先 Approve WETH(Allow Marketplace to use your WETH), 点击Approve WETH并在钱包中确认后才能使用脚本发起购买请求
 
 
 ## 运行环境准备
@@ -29,7 +30,7 @@ pip install json
 
 
 ```
-private_key: 用于购买axie的账号，账号下需要有足够数量的ron和weth" 
+private_key: 用于购买axie的账号，账号下需要有足够数量的ron和weth,且已经在marketplace网站中Approve WETH" 
 market_place_url: 特定筛选条件的市场链接
 limit_price: 价格低于此限制就购买(单位: weth)
 max_buy: 购买数量,超过此购买数量后即停止执行
