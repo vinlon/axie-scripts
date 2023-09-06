@@ -1,0 +1,38 @@
+query GetMinPriceErc1155Tokens($tokenIds: [String!]) {
+  erc1155Tokens(tokenIds: $tokenIds, tokenType: Rune) {
+    total
+    results {
+      id: tokenId
+      tokenId
+      minPrice
+      tokenType
+      orders(size: 1, sort: PriceAsc) {
+        total
+        data {
+          id
+          addedAt
+          basePrice
+          currentPrice
+          currentPriceUsd
+          expectedState
+          endedAt
+          endedPrice
+          expiredAt
+          duration
+          paymentToken
+          signature
+          maker
+          kind
+          assets {
+            address
+            id
+            quantity
+          }
+          startedAt
+          marketFeePercentage
+          nonce
+        }
+      }
+    }
+  }
+}
