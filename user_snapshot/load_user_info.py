@@ -16,7 +16,7 @@ def get_profile(address):
 
 
 # 从文件中读取query内容
-with open('user_snapshot_env', 'r') as file:
+with open('_user_snapshot_env', 'r') as file:
   addresses = json.load(file)
 
 print(f"从user_snapshot_env文件中读取用户地址, 共{len(addresses)}个")
