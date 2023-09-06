@@ -91,7 +91,7 @@ def print_content(stdscr, data):
     target_info = "{:<10} {:<15} {:<15} {:<10} {:<10}".format(
         id,
         target.get('limit_price_eth', '-'),
-        f"{target.get('min_price_eth', '-'):.6f}",
+        f"{target.get('min_price_eth', 0):.6f}",
         target.get('max_buy', '0'),
         target.get('buy_count', '0')
     )

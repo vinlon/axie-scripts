@@ -4,6 +4,7 @@ import os
 import sys
 import time
 import logging
+import curses
 from web3 import Web3
 
 # 日志配置
@@ -112,11 +113,43 @@ def parse_criteria(url):
 
   return query_params
 
-def log_info(msg):
-  current = time.strftime("%Y-%m-%d %H:%M:%S",time.localtime())  
-  print(f"[{current}] {msg}")
+def print_content(stdscr, data):
+  stdscr.clear()
+  stdscr.addstr(0, 0, f"市场链接: {data.get('mp_url')}")
+  stdscr.addstr(1, 0, f"限制购买价格: {data.get('limit_price_eth')}(低于此价格将自动购买)")
+  stdscr.addstr(2, 0, f"最大购买数量: {data.get('max_buy')}(买完以后停止执行)")
+  stdscr.addstr(3, 0, f"查询次数: {data.get('loop')}, 已购数量: {data.get('buy_count')}")
+  stdscr.addstr(4, 0, f"查询记录(只显示最新的10条，历史查询记录可以在query.log中查看):")
+  stdscr.addstr(5, 0, "{:<20} {:<10} {:<10} {:<15} {:<10}".format("QUERY_TIME", "FLOOR_ID", "TOTAL", "PRICE_ETH", "PRICE_USD"))
+  row = 6
+  for query_log in reversed(data.get('query_logs', [])):
+    # 格式化每一行的数据
+    query_info = "{:<20} {:<10} {:<10} {:<15} {:<10}".format(
+        query_log.get('query_time', '-'),
+        query_log.get('floor_id', '-'),
+        query_log.get('total', '-'),
+        f"{query_log.get('floor_price_eth', '0'):.6f}",
+        f"${query_log.get('floor_price_usd', '0'):.6f}"
+    )
+    stdscr.addstr(row, 0, query_info)
+    row += 1
+  stdscr.addstr(row, 0, f"购买记录:")
+  row += 1
+  stdscr.addstr(row, 0, "{:<20} {:<10} {:<10} {:<15} {:<15}".format("BUY_TIME", "AXIE_ID", "PRICE", "GAS_USED", "RESULT"))
+  row += 1
+  for buy_log in data.get('buy_logs'):
+    buy_info = "{:<20} {:<10} {:<10} {:<15} {:<15}".format(
+        buy_log.get('buy_time', '-'),
+        buy_log.get('axie_id', '-'),
+        f"{buy_log.get('price', 0):.6f}",
+        f"${buy_log.get('gas_used', 0):.10f}",
+        buy_log.get('result', '-')
+    )
+    stdscr.addstr(row, 0, buy_info)
+    row += 1
+  stdscr.refresh()
 
-def main(): 
+def main(stdscr): 
   # 读取配置
   with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '_buy_axie_env'), 'r') as file:
     config = json.load(file)
@@ -129,29 +162,42 @@ def main():
   if (not mp_url.startswith("https://app.axieinfinity.com/marketplace/axies/")): 
     sys.exit("无效的链接市场链接，请检查_buy_axie_env文件中的market_place_url参数")
 
-  print(f'市场链接: {mp_url}')
-  print(f'限制购买价格: {limit_price_eth}(低于此价格将自动购买)')
-  print(f'最大购买数量: {max_buy}(买完以后停止执行)')
-
-  input("\033[0;31;40m请确认上述配置是否有误, 确认无误后按回车键继续:\033[0m")
   
-  print(f'开始查询(只输出前10条记录，后续查询记录可以在query.log中查看):')
+  stdscr.nodelay(1)   # 设置为非阻塞输入
+  stdscr.addstr(0, 0, f'市场链接: {mp_url}')
+  stdscr.addstr(1, 0, f'限制购买价格: {limit_price_eth}(低于此价格将自动购买)')
+  stdscr.addstr(2, 0, f'最大购买数量: {max_buy}(买完以后停止执行)')
+  stdscr.addstr(3, 0, "请确认上述配置是否有误, 确认无误后按回车键继续:")
+  stdscr.refresh()
+  # 等待用户按下任意键
+  while True:
+      key = stdscr.getch()
+      if key != -1:
+          break
+  curses.curs_set(0)  # 隐藏光标 
+
   buy_count = 0
-  loop = 0
+  data = {
+    'mp_url': mp_url,
+    'limit_price_eth': limit_price_eth,
+    'max_buy': max_buy,
+    'query_logs': [],
+    'buy_logs': [],
+    'buy_count': buy_count,
+    'loop': 0
+  }
   while True:
     # 延时1s执行
     time.sleep(1)
-    loop += 1
+    data['loop'] += 1
     try: 
       # 查询列表，只取价格最低的一个
       axie_list = fetch_axie(mp_url, 1)
     except Exception as e :
       error_message = str(e.args[0]) if e.args else "未知错误"
-      log_info(f"查询失败: {error_message}")
       continue
     results = axie_list['results']
     if (len(results) == 0) :
-      log_info("未查到符合条件的axie")
       continue
 
     floor_axie = results[0]
@@ -160,36 +206,50 @@ def main():
     floor_price_eth = Web3.from_wei(floor_price, 'ether')
     floor_price_usd = float(floor_axie['order']['currentPriceUsd'])
     limit_price = Web3.to_wei(limit_price_eth, 'ether')
-    msg = f"总数: {axie_list['total']}, 地板ID: {floor_id}, 地板价: {round(floor_price_eth, 6)}(weth) (${round(floor_price_usd, 3)})"
-    if (loop > 10):
-      logging.info(msg)
-      print('', end = '.', flush=True)
-    else: 
-        log_info(msg)
-
-    if (floor_price <= limit_price):
-      # 购买axie
-      print('')
-      print(f"  AxieId={floor_id} 符合条件，提交购买请求", end = '...')
-      tx_receipt = buy_axie(floor_axie, private_key, gas_price)
-      gas_used = Web3.from_wei(tx_receipt.gasUsed, 'ether') * Web3.to_wei(int(gas_price), 'gwei');
-      transaction_hash = tx_receipt.transactionHash.hex()
-      if tx_receipt.status == 1:
-        buy_count += 1
-        print(f"请求成功, 消耗gas: {gas_used}, 交易哈希: {transaction_hash}")
-        if (buy_count >= max_buy):
-          print(f"购买数量达到{max_buy},完成购买任务，终止执行")
-          break;
+    total = axie_list['total']
+    is_match = floor_price <= limit_price
+    msg = f"总数: {total}, 地板ID: {floor_id}, 地板价: {round(floor_price_eth, 6)}(weth) (${round(floor_price_usd, 3)})"
+    logging.info(msg)
+    data['query_logs'] = data['query_logs'][-9:]
+    data['query_logs'].append({
+      'query_time': time.strftime("%Y-%m-%d %H:%M:%S"),
+      'floor_id': floor_id,
+      'floor_price_eth': floor_price_eth,
+      'floor_price_usd': floor_price_usd,
+      'total': total
+    })
+    print_content(stdscr, data)
+      
+    if is_match:
+      if (buy_count < max_buy):
+        # 购买axie
+        tx_receipt = buy_axie(floor_axie, private_key, gas_price)
+        gas_used = Web3.from_wei(tx_receipt.gasUsed, 'ether') * Web3.to_wei(int(gas_price), 'gwei');
+        transaction_hash = tx_receipt.transactionHash.hex()
+        result = '购买失败' if tx_receipt.status == 0 else '购买成功'
+        if tx_receipt.status == 1:
+          buy_count += 1
       else:
-        print(f"请求失败, 消耗gas:{gas_used}, 交易哈希: {transaction_hash}")
-
-
+        gas_used = 0
+        transaction_hash = '-'
+        result = f"购买进度{buy_count}/{max_buy},跳过"
+      
+      data['buy_logs'] = data['buy_logs'][-9:]
+      data['buy_logs'].append({
+        'buy_time': time.strftime("%Y-%m-%d %H:%M:%S"),
+        'axie_id': floor_id,
+        'price': floor_price_eth,
+        'result': result,
+        'gas_used': gas_used,
+        'trans_hash': transaction_hash
+      })
+      print_content(stdscr, data)
 
 ### ============方法定义 end =============
 try: 
-  main()
+  if __name__ == "__main__":
+    curses.wrapper(main)
 except KeyboardInterrupt:
-    print('')
     print('取消脚本执行')
 ### ============脚本执行 start =============
 
