@@ -119,9 +119,10 @@ def print_content(stdscr, data):
   stdscr.addstr(1, 0, f"限制购买价格: {data.get('limit_price_eth')}(低于此价格将自动购买)")
   stdscr.addstr(2, 0, f"最大购买数量: {data.get('max_buy')}(买完以后停止执行)")
   stdscr.addstr(3, 0, f"查询次数: {data.get('loop')}, 已购数量: {data.get('buy_count')}")
-  stdscr.addstr(4, 0, f"查询记录(只显示最新的10条，历史查询记录可以在query.log中查看):")
-  stdscr.addstr(5, 0, "{:<20} {:<10} {:<10} {:<15} {:<10}".format("QUERY_TIME", "FLOOR_ID", "TOTAL", "PRICE_ETH", "PRICE_USD"))
-  row = 6
+  stdscr.addstr(4, 0, '正在查询' + ('=' * (data.get('loop') % 50)) + '>')
+  stdscr.addstr(5, 0, f"查询记录(只显示最新的10条，历史查询记录可以在query.log中查看):")
+  stdscr.addstr(6, 0, "{:<20} {:<10} {:<10} {:<15} {:<10}".format("QUERY_TIME", "FLOOR_ID", "TOTAL", "PRICE_ETH", "PRICE_USD"))
+  row = 7
   for query_log in reversed(data.get('query_logs', [])):
     # 格式化每一行的数据
     query_info = "{:<20} {:<10} {:<10} {:<15} {:<10}".format(
@@ -142,7 +143,7 @@ def print_content(stdscr, data):
         buy_log.get('buy_time', '-'),
         buy_log.get('axie_id', '-'),
         f"{buy_log.get('price', 0):.6f}",
-        f"${buy_log.get('gas_used', 0):.10f}",
+        f"{buy_log.get('gas_used', 0):.10f}",
         buy_log.get('result', '-')
     )
     stdscr.addstr(row, 0, buy_info)
@@ -176,16 +177,16 @@ def main(stdscr):
           break
   curses.curs_set(0)  # 隐藏光标 
 
-  buy_count = 0
   data = {
     'mp_url': mp_url,
     'limit_price_eth': limit_price_eth,
     'max_buy': max_buy,
     'query_logs': [],
     'buy_logs': [],
-    'buy_count': buy_count,
+    'buy_count': 0,
     'loop': 0
   }
+  buy_ids = []
   while True:
     # 延时1s执行
     time.sleep(1)
@@ -221,18 +222,22 @@ def main(stdscr):
     print_content(stdscr, data)
       
     if is_match:
-      if (buy_count < max_buy):
+      # axie被买走后，短时间内仍然会被查到
+      if floor_id in buy_ids:
+        continue;
+      buy_ids.append(floor_id)
+      if (data.get('buy_count') < max_buy):
         # 购买axie
         tx_receipt = buy_axie(floor_axie, private_key, gas_price)
         gas_used = Web3.from_wei(tx_receipt.gasUsed, 'ether') * Web3.to_wei(int(gas_price), 'gwei');
         transaction_hash = tx_receipt.transactionHash.hex()
-        result = '购买失败' if tx_receipt.status == 0 else '购买成功'
+        result = '购买失败' if tx_receipt.status == 0 else '恭喜你，购买成功'
         if tx_receipt.status == 1:
-          buy_count += 1
+          data['buy_count'] += 1
       else:
         gas_used = 0
         transaction_hash = '-'
-        result = f"购买进度{buy_count}/{max_buy},跳过"
+        result = f"购买进度{data.get('buy_count')}/{max_buy},跳过"
       
       data['buy_logs'] = data['buy_logs'][-9:]
       data['buy_logs'].append({
