@@ -133,9 +133,11 @@ def main():
 
   print('1. 查询游戏内可提现SLP')
   print("{:<15} {:<15} {:<15}".format("ADDRESS", "GAME_SLP", "可提现_SLP"))
+  account_game_slp = {}
   for private_key in config.get('accounts', []):
     signer = w3.eth.account.from_key(private_key)
     slp = query_slp(signer.address)
+    account_game_slp[signer.address] = slp.get('withdrawable', 0)
     print("{:<15} {:<15} {:<15}".format(
       short_address(signer.address),
       slp.get('quantity', 0),
@@ -151,31 +153,38 @@ def main():
     for private_key in config.get('accounts', []):
       signer = w3.eth.account.from_key(private_key)
       address = signer.address
-      withdraw_amount = 1
+      withdraw_amount = account_game_slp.get(address)
+      if (withdraw_amount <= 0):
+        continue;
       try:
-        tx_receipt = withdraw_slp(w3, signer, 1)
+        tx_receipt = withdraw_slp(w3, signer, withdraw_amount)
         gas_used = Web3.from_wei(tx_receipt.gasUsed, 'ether') * Web3.to_wei(20, 'gwei');
         if tx_receipt.status == 1:
           result = f'提现成功({withdraw_amount} slp), 消耗gas = {gas_used:.6f} ron'
           withdraw_count += 1
-          withdraw_total_amount += withdraw_count
+          withdraw_total_amount += withdraw_amount
         else:
           result = '提现失败'
 
       except Exception as e :
         result = '提现失败:' + str(e.args[0]) if e.args else "未知错误"
       print(f"{short_address(address)}: {result}")
-      print(f"# 提现成功账户数量:{withdraw_count}, 提现总金额：{withdraw_total_amount} slp")
+    print("")
+    print(f"# 提现成功账户数量:{withdraw_count}, 提现总金额：{withdraw_total_amount} slp")
   else:
     print("\033[0;31;40m放弃提现\033[0m")
 
   print('2. 查询账户余额')
   print("{:<15} {:<15} {:<15}".format("ADDRESS", "WALLET_SLP", "WALLET_AXS"))
+  account_slp = {}
+  account_axs = {}
   for private_key in config.get('accounts', []):
     signer = w3.eth.account.from_key(private_key)
     address = signer.address
     slp_balance = slp_contract.functions.balanceOf(address).call()
     axs_balance = axs_contract.functions.balanceOf(address).call()
+    account_slp[address] = slp_balance
+    account_axs[address] = axs_balance
     print("{:<15} {:<15} {:<15}".format(
       short_address(address),
       slp_balance,
@@ -191,24 +200,29 @@ def main():
     for private_key in config.get('accounts', []):
       signer = w3.eth.account.from_key(private_key)
       address = signer.address
-      print(f"[{short_address(address)}] ", end = '', flush = True)
-      slp_amount = 1
-      axs_amount = w3.to_wei('0.1', 'ether')
-      slp_tx_receipt = send_token(w3, slp_contract, signer, slp_amount, receiver)
-      slp_gas_used = Web3.from_wei(slp_tx_receipt.gasUsed, 'ether') * Web3.to_wei(20, 'gwei');
-      if slp_tx_receipt.status == 1:
-        slp_total += slp_amount
-        print(f"SLP转账成功({slp_amount} slp)", end = ',', flush = True)
-      else: 
-        print('SLP转账失败', end = ',', flush = True)
-      axs_tx_receipt = send_token(w3, axs_contract, signer, axs_amount, receiver)
-      axs_gas_used = Web3.from_wei(slp_tx_receipt.gasUsed, 'ether') * Web3.to_wei(20, 'gwei');
-      if axs_tx_receipt.status == 1:
-        axs_total += axs_amount
-        print(f"AXS转账成功({w3.from_wei(axs_amount, 'ether')} axs)")
-      else: 
-        print('AXS转账失败')
-      print(f"# SLP总金额：{slp_total}, AXS总金额: {w3.from_wei(axs_total, 'ether')}")
+      
+      slp_amount = account_slp.get(address, 0)
+      axs_amount = account_axs.get(address, 0)
+      if slp_amount > 0  or axs_amount > 0:
+        print(f"[{short_address(address)}] ", end = '', flush = True)
+      if (slp_amount > 0):
+        slp_tx_receipt = send_token(w3, slp_contract, signer, slp_amount, receiver)
+        slp_gas_used = Web3.from_wei(slp_tx_receipt.gasUsed, 'ether') * Web3.to_wei(20, 'gwei');
+        if slp_tx_receipt.status == 1:
+          slp_total += slp_amount
+          print(f"SLP转账成功({slp_amount} slp)", end = ' ', flush = True)
+        else: 
+          print('SLP转账失败', end = ' ', flush = True)
+      if (axs_amount > 0): 
+        axs_tx_receipt = send_token(w3, axs_contract, signer, axs_amount, receiver)
+        axs_gas_used = Web3.from_wei(slp_tx_receipt.gasUsed, 'ether') * Web3.to_wei(20, 'gwei');
+        if axs_tx_receipt.status == 1:
+          axs_total += axs_amount
+          print(f"AXS转账成功({w3.from_wei(axs_amount, 'ether')} axs)", end = ' ', flush = True)
+        else: 
+          print('AXS转账失败', end = ' ', flush = True)
+    print("")
+    print(f"# SLP总金额：{slp_total}, AXS总金额: {w3.from_wei(axs_total, 'ether')}")
       
   else:
     print("\033[0;31;40m放弃转账\033[0m")
@@ -217,7 +231,7 @@ def main():
     print("\033[0;31;40m放弃查看，执行结束\033[0m")
     return
   print('3.1 查询账户状态')
-  print("{:<15} {:<15} {:<15} {:<15} {:<15}".format("ADDRESS", "GAME_SLP", "WALLET_SLP", "WALLET_AXS", "可提现_SLP"))
+  print("{:<15} {:<15} {:<15} {:<15} {:<15}".format("ADDRESS", "WALLET_SLP", "WALLET_AXS", "GAME_SLP", "可提现_SLP"))
   for private_key in config.get('accounts', []):
     signer = w3.eth.account.from_key(private_key)
     address = signer.address
@@ -226,9 +240,9 @@ def main():
     axs_balance = axs_contract.functions.balanceOf(address).call()
     print("{:<15} {:<15} {:<15} {:<15} {:<15}".format(
       short_address(signer.address),
-      slp.get('quantity', 0),
       slp_balance,
       display_axs(axs_balance),
+      slp.get('quantity', 0),
       slp.get('withdrawable', 0)
     ))
 
