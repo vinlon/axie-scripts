@@ -1,0 +1,83 @@
+[
+    {
+        "inputs":
+        [
+            {
+                "components":
+                [
+                    {
+                        "internalType": "address",
+                        "name": "owner",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "nonce",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "expiredAt",
+                        "type": "uint256"
+                    },
+                    {
+                        "components":
+                        [
+                            {
+                                "internalType": "enum MarketAsset.TokenStandard",
+                                "name": "erc",
+                                "type": "uint8"
+                            },
+                            {
+                                "internalType": "address",
+                                "name": "addr",
+                                "type": "address"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "id",
+                                "type": "uint256"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "quantity",
+                                "type": "uint256"
+                            },
+                            {
+                                "internalType": "enum PortalAsset.Rarity",
+                                "name": "rarity",
+                                "type": "uint8"
+                            }
+                        ],
+                        "internalType": "struct PortalAsset.AssetWithRarity[]",
+                        "name": "assets",
+                        "type": "tuple[]"
+                    },
+                    {
+                        "internalType": "bytes",
+                        "name": "extraData",
+                        "type": "bytes"
+                    }
+                ],
+                "internalType": "struct PortalExchange.WithdrawalStatement",
+                "name": "_withdrawal",
+                "type": "tuple"
+            },
+            {
+                "internalType": "bytes",
+                "name": "_signature",
+                "type": "bytes"
+            },
+            {
+                "internalType": "address[]",
+                "name": "_path",
+                "type": "address[]"
+            }
+        ],
+        "name": "withdraw",
+        "outputs":
+        [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    }
+]
