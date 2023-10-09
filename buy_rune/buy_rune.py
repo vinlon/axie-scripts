@@ -83,12 +83,13 @@ def print_header(stdscr, start_time):
 def print_content(stdscr, data):
   stdscr.addstr(2, 0, "当前时间:" + time.strftime("%Y-%m-%d %H:%M:%S"))
   stdscr.addstr(3, 0, f"查询次数:{data.get('query_count', 0)}")
-  
-  stdscr.addstr(4, 0, "{:<10} {:<15} {:<15} {:<10} {:<10}".format("RUNE_ID", "Limit Price", "Min Price", "Max Buy", "Buy Count"))
-  row = 5
+  stdscr.addstr(4, 0, '正在查询' + ('=' * (data.get('loop') % 50)) + '>')
+  stdscr.addstr(5, 0, "{:<20} {:<10} {:<15} {:<15} {:<10} {:<10}".format("REMARK", "RUNE_ID", "Limit Price", "Min Price", "Max Buy", "Buy Count"))
+  row = 6
   for id, target in data.get('targets', []).items():
     # 格式化每一行的数据
-    target_info = "{:<10} {:<15} {:<15} {:<10} {:<10}".format(
+    target_info = "{:<20} {:<10} {:<15} {:<15} {:<10} {:<10}".format(
+        target.get('remark', '-'),
         id,
         target.get('limit_price_eth', '-'),
         f"{target.get('min_price_eth', 0):.6f}",
@@ -116,6 +117,7 @@ def main(stdscr):
   order_ids = []
   start_time = time.strftime("%Y-%m-%d %H:%M:%S")
   query_count = 0
+  loop = 0
   buy_log = []
 
   curses.curs_set(0)  # 隐藏光标
@@ -124,6 +126,7 @@ def main(stdscr):
   print_header(stdscr, start_time)
   while True:
     query_count = query_count + 1
+    loop = loop + 1
     try: 
       # 查询runes列表，包含最低价格
       runes = list_runes(target_ids)
@@ -176,7 +179,8 @@ def main(stdscr):
     print_content(stdscr, {
       'query_count': query_count, 
       'targets':targets_by_id,
-      'buy_log': buy_log
+      'buy_log': buy_log,
+      'loop': loop
     })
     stdscr.refresh()
     # 获取用户输入（非阻塞）

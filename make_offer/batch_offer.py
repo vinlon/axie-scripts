@@ -168,7 +168,7 @@ def parse_criteria(url):
     if key == 'excludeParts':
       key = 'parts'
       value = '!' + value
-    if key in ['auctionTypes', 'sort']:
+    if key in ['sort', 'page']:
       continue
     elif key in query_params:
       query_params[key].append(value)
@@ -202,8 +202,10 @@ def main():
     return
   floor_axie = results[0]
   floor_info = f",第一个符合条件的ID为{floor_axie['id']}"
-  if 'order' in floor_axie:
-    floor_info += f",价格为:{Web3.from_wei(int(floor_axie['order']['currentPrice']), 'ether')}"
+  order = floor_axie['order']
+
+  if order is not None:
+    floor_info += f",价格为:{Web3.from_wei(int(order['currentPrice']), 'ether')}"
   else:
     floor_info += ',未出售'
   print(f"共有{axie_list['total']}符合条件的记录,返回结果数量:{len(results)}{floor_info}")
