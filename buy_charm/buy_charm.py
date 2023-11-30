@@ -18,7 +18,7 @@ def list_charms(charm_ids):
     'operationName': 'GetMinPriceErc1155Tokens'
   }
   endpoint = 'https://graphql-gateway.axieinfinity.com/graphql'
-  response =  requests.post(endpoint, json = data)
+  response =  requests.post(endpoint, json = data, timeout = 2)
   return response.json()['data']['erc1155Tokens']['results']
 
 def buy_charm(order, private_key, gas_price):
@@ -68,9 +68,9 @@ def buy_charm(order, private_key, gas_price):
       'ORDER_EXCHANGE', data
   ).build_transaction({
       'chainId': 2020,
-      'gas': 481337,
+      'gas': 263679,
       'gasPrice': Web3.to_wei(int(gas_price), 'gwei'),
-      'nonce': w3.eth.get_transaction_count(signer.address),
+      'nonce': w3.eth.get_transaction_count(signer.address)
   })
   signed_txn = signer.sign_transaction(transaction)
   tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
@@ -125,6 +125,7 @@ def main(stdscr):
   stdscr.scrollok(True) # 开启窗口滚动
   print_header(stdscr, start_time)
   while True:
+    time.sleep(1)
     query_count = query_count + 1
     loop = loop + 1
     try: 
@@ -134,19 +135,22 @@ def main(stdscr):
       continue
     
     for charm in charms:
-      charm_id = charm['id']
-      min_price = int(charm['minPrice'])
-      min_price_eth = Web3.from_wei(min_price, 'ether')
-      target = targets_by_id[charm_id]
-      limit_price_eth = target['limit_price_eth']
-      limit_price = Web3.to_wei(limit_price_eth, 'ether')
-      target['min_price_eth'] = min_price_eth
-      if (min_price > limit_price):
+      try: 
+        charm_id = charm['id']
+        min_price = int(charm['minPrice'])
+        min_price_eth = Web3.from_wei(min_price, 'ether')
+        target = targets_by_id[charm_id]
+        limit_price_eth = target['limit_price_eth']
+        limit_price = Web3.to_wei(limit_price_eth, 'ether')
+        target['min_price_eth'] = min_price_eth
+        if (min_price > limit_price):
+          continue
+        order = charm['orders']['data'][0]
+        order_id = order.get('id', 0)
+        # 以防万一，再检查一下order的currentPrice
+        order_min_price = int(order['currentPrice'])
+      except Exception as e :
         continue
-      order = charm['orders']['data'][0]
-      order_id = order.get('id', 0)
-      # 以防万一，再检查一下order的currentPrice
-      order_min_price = int(order['currentPrice'])
       if (order_min_price > limit_price):
         continue
       # charm被买走后，短时间内仍然会被查到

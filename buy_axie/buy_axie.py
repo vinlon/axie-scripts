@@ -203,6 +203,8 @@ def main(stdscr):
 
     floor_axie = results[0]
     floor_id = int(floor_axie['id'])
+    if 'order' not in floor_axie:
+      continue
     floor_price = int(floor_axie['order']['currentPrice'])
     floor_price_eth = Web3.from_wei(floor_price, 'ether')
     floor_price_usd = float(floor_axie['order']['currentPriceUsd'])
@@ -226,6 +228,7 @@ def main(stdscr):
       if floor_id in buy_ids:
         continue;
       buy_ids.append(floor_id)
+      buy_time = time.strftime("%Y-%m-%d %H:%M:%S")
       if (data.get('buy_count') < max_buy):
         # 购买axie
         tx_receipt = buy_axie(floor_axie, private_key, gas_price)
@@ -241,7 +244,7 @@ def main(stdscr):
       
       data['buy_logs'] = data['buy_logs'][-9:]
       data['buy_logs'].append({
-        'buy_time': time.strftime("%Y-%m-%d %H:%M:%S"),
+        'buy_time': buy_time,
         'axie_id': floor_id,
         'price': floor_price_eth,
         'result': result,
